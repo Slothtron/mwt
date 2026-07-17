@@ -16,10 +16,16 @@ cd mwt
 go install ./cmd/mwt
 
 # 可选：注入版本号（发布构建）
-go build -ldflags "-X github.com/Slothtron/mwt/internal/version.Version=0.1.0 -X github.com/Slothtron/mwt/internal/version.Commit=$(git rev-parse --short HEAD)" -o mwt ./cmd/mwt
+go build -ldflags "-X github.com/Slothtron/mwt/internal/version.Version=0.2.0 -X github.com/Slothtron/mwt/internal/version.Commit=$(git rev-parse --short HEAD)" -o mwt ./cmd/mwt
 ```
 
 二进制进入 `$GOBIN` / `$GOPATH/bin`，确保该目录在 `PATH` 中。使用方仓库**不**提交 `./bin/mwt` 或嵌入 `tools/mwt`。用 `mwt version` 或 `mwt --version` 查看版本。
+
+可选：将 Agent 技能安装到用户目录（默认 `~/.agents/skills/mwt`）：
+
+```bash
+mwt skill sync
+```
 
 ## Quick start
 
@@ -43,6 +49,7 @@ mwt rm my-feature
 | 命令 | 作用 |
 |------|------|
 | `mwt init` | 向下扫描 Git 主检出并生成 `.mwt.yaml`（按元根是否有 `.git` 写入 `worktree_path`）；`--depth`（默认 10）、`--dry-run`、`--force` |
+| `mwt skill sync` | 将内嵌 Agent 技能同步到 `~/.agents/skills/mwt`（`--dir`、`--force`；裸 `mwt skill` 等同 sync） |
 | `mwt version` | 打印 mwt 二进制版本（亦支持 `mwt --version` / `-v`） |
 | `mwt add <branch>` | 对各仓 `git worktree add`；可选 `--from` 建分支；默认跑 setup；`--no-setup` 跳过 |
 | `mwt rm <branch>` | 移除各仓 worktree；脏/残留可用 `--force` |

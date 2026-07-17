@@ -173,6 +173,7 @@ doctor 发现 list 路径不存在（prunable）？
 | 命令 | 行为摘要 |
 |------|----------|
 | `init` | 从 cwd 向下扫描 Git 主检出（默认最多 10 层），生成 `.mwt.yaml`；按是否存在 `{cwd}/.git` **显式写入** `worktree_path`（§5.1 双默认）；命中仓后不下钻；跳过 `worktrees`/`.worktrees`；已存在需 `--force` |
+| `skill sync` | 将二进制内嵌的 Agent 技能写出到 `~/.agents/skills/mwt`（`--dir` 改父目录；`--force` 覆盖；裸 `skill` 等同 sync） |
 | `version` | 打印 mwt 二进制版本（ldflags / `runtime/debug`）；根命令亦支持 `--version` / `-v` |
 | `add <branch>` | 对选定仓 `git worktree add`；可选 `--from` 建分支；默认跑 setup |
 | `rm <branch>` | 对选定仓 `git worktree remove`；目录残留可 `--force` |
@@ -496,5 +497,6 @@ mwt rm demo_mwt_smoke --repos sap
 - **缺省路径前缀**：元根存在 `{ROOT}/.git` → `.worktrees/`，否则 `worktrees/`；显式 `worktree_path` 不改写（§5.1）
 - setup：通用步骤列表（§6.2），v1 动作为 `copy` / `run`；无 `copy_env` 等专用字段
 - `repos`：path 字符串数组（块序列或 `[a, b]`）；`{{REPO}}`/`{{REPO_PATH}}` 即该项
-- CLI：`github.com/spf13/cobra`；含 `init`（向下扫描 Git 仓生成 `.mwt.yaml`，默认深度 10）、`version`（二进制版本）
+- CLI：`github.com/spf13/cobra`；含 `init`、`skill sync`（embed 技能 → `~/.agents/skills/mwt`）、`version`
 - 语言：**Go**
+- Agent 技能：源在 `internal/skilldata/mwt`（`go:embed`）；用户侧用 `mwt skill sync` 安装，不在仓内维护 `.agents/skills/mwt`

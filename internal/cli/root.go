@@ -31,8 +31,10 @@ independent repositories from a single .mwt.yaml at the meta-root.`,
 	cmd.SetVersionTemplate("{{.Version}}\n")
 
 	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newSkillCmd())
 	cmd.AddCommand(newVersionCmd())
 	cmd.AddCommand(newAddCmd(d))
+
 	cmd.AddCommand(newRmCmd(d))
 	cmd.AddCommand(newListCmd(d))
 	cmd.AddCommand(newPathCmd(d))

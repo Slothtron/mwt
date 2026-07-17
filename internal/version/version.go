@@ -7,7 +7,7 @@ import (
 
 // Set via -ldflags "-X github.com/Slothtron/mwt/internal/version.Version=..."
 var (
-	Version   = "0.1.0"
+	Version   = "0.2.0"
 	Commit    = "none"
 	BuildDate = "unknown"
 )

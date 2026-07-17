@@ -20,8 +20,8 @@ func TestString_NonEmpty(t *testing.T) {
 
 func TestInfo_DefaultVersion(t *testing.T) {
 	d := Info()
-	if d.Version != "0.1.0" {
-		t.Fatalf("Version=%q want 0.1.0", d.Version)
+	if d.Version != "0.2.0" {
+		t.Fatalf("Version=%q want 0.2.0", d.Version)
 	}
 	if d.Commit == "" {
 		t.Fatal("Commit empty")
@@ -64,9 +64,9 @@ func TestInfo_FillsCommitFromBuildInfoWhenDefault(t *testing.T) {
 	})
 	Commit = "none"
 	BuildDate = "unknown"
-	// Version stays 0.1.0; Commit may be enriched under `go test` with -buildvcs.
+	// Version stays at package default; Commit may be enriched under `go test` with -buildvcs.
 	d := Info()
-	if d.Version != "0.1.0" {
+	if d.Version != "0.2.0" {
 		t.Fatalf("Version=%q", d.Version)
 	}
 	_ = d.Commit
