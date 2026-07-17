@@ -1,0 +1,29 @@
+# Example: polyrepo meta-root without a top-level .git (sync-auth shape).
+# Copy to the meta-root as `.mwt.yaml`, or symlink.
+#
+# Explicit worktree_path matches the no-.git default
+# (worktrees/{{REPO}}/{{BRANCH}}/{{REPO}}). Omitting the field yields the same
+# when {ROOT}/.git is absent. See tech doc §5.1 / §6.3.
+
+root: .
+worktree_path: "worktrees/{{REPO}}/{{BRANCH}}/{{REPO}}"
+repos:
+  - oauth
+  - org-sync
+  - sap
+# equivalent: repos: [oauth, org-sync, sap]
+setup:
+  # copy .env from main checkout when present; skip if already in worktree
+  - copy:
+      from: "{{MAIN_PATH}}/.env"
+      to: ".env"
+      skip_if_exists: true
+      skip_if_missing_src: true
+  # else fall back to meta-root example placeholder
+  - copy:
+      from: "{{ROOT}}/.env.example"
+      to: ".env"
+      skip_if_exists: true
+      skip_if_missing_src: true
+  - run:
+      command: "go mod download"

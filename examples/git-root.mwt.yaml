@@ -1,0 +1,14 @@
+# Example: meta-root that is itself a Git repo ({ROOT}/.git present).
+# Omitting worktree_path → default `.worktrees/{{REPO}}/{{BRANCH}}/{{REPO}}`.
+#
+# Add to that repo's .gitignore:
+#   .worktrees/
+
+root: .
+repos:
+  - .
+# If the meta-root holds nested checkouts instead:
+# repos:
+#   - svc-a
+#   - svc-b
+setup: []
