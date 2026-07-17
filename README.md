@@ -71,7 +71,21 @@ mwt rm my-feature
 | `worktree_path` | 路径模板；`mwt init` 会按双默认显式写入；**省略时** Load 仍按下方规则选前缀 |
 | `setup` | 有序步骤列表（v1：`copy` / `run`） |
 
-完整字段与占位符见技术方案 `docs/20260717-113800-mwt-multi-repo-worktree-cli.md` §6。
+动作字段、`skip_*` 等细节见技术方案 `docs/20260717-113800-mwt-multi-repo-worktree-cli.md` §6。
+
+### Placeholders
+
+| 占位符 | 含义 | `worktree_path` | `setup` |
+|--------|------|-----------------|---------|
+| `{{ROOT}}` | 元根绝对路径 | 是 | 是 |
+| `{{REPO}}` | 当前 repos 项（相对元根） | 是 | 是 |
+| `{{REPO_PATH}}` | 与 `{{REPO}}` 等价 | 是 | 是 |
+| `{{MAIN_PATH}}` | 主检出绝对路径 | 是 | 是 |
+| `{{BRANCH}}` | 目标分支名 | 是 | 是 |
+| `{{WORKTREE_PATH}}` | 本仓 worktree 绝对路径 | 否（防自引用） | 是 |
+| `{{WORKTREE_NAME}}` | worktree 目录 basename | 否（依赖上者） | 是 |
+
+形式 `{{NAME}}`，NAME 全大写；未知占位符报错。`setup` 的 `from`/`to`/`command`/`dir` 等字段按上表 `setup` 列展开。
 
 ### Dual-default path rule
 
@@ -85,16 +99,6 @@ mwt rm my-feature
 显式写出的 `worktree_path`（无论 `worktrees/...` 还是 `.worktrees/...`）**原样使用**，不会按 `.git` 自动改写前缀。
 
 **Git 元根建议：** 将 `.worktrees/` 加入该仓 `.gitignore`，避免点目录下的 worktree 污染主工作区视图与误提交。
-
-## vs workmux
-
-| | [workmux](https://github.com/raine/workmux) | mwt |
-|--|--|--|
-| 模型 | 1 repo × N branches × tmux windows | N repos × 1 branch set |
-| 焦点 | 单仓 + tmux 并行 | 多独立仓同分支联调 |
-| v1 | tmux 为核心叙事 | **不做** tmux / TUI / Agent |
-
-单仓日常 TUI 仍可用 lazygit；跨仓长期同分支联调用 mwt。
 
 ## Non-goals (v1)
 

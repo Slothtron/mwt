@@ -42,6 +42,20 @@ Shared flags: `--repos`, `--continue`.
   - else → `worktrees/{{REPO}}/{{BRANCH}}/{{REPO}}`
 - `setup`: ordered `copy` / `run` steps (placeholders like `{{WORKTREE_PATH}}`).
 
+## Placeholders
+
+| Placeholder | Meaning | `worktree_path` | `setup` |
+|-------------|---------|-----------------|---------|
+| `{{ROOT}}` | Absolute meta-root | yes | yes |
+| `{{REPO}}` | Current `repos` entry (rel. meta-root) | yes | yes |
+| `{{REPO_PATH}}` | Alias of `{{REPO}}` | yes | yes |
+| `{{MAIN_PATH}}` | Absolute main checkout | yes | yes |
+| `{{BRANCH}}` | Target branch name | yes | yes |
+| `{{WORKTREE_PATH}}` | Absolute worktree path | no (self-ref) | yes |
+| `{{WORKTREE_NAME}}` | Basename of worktree path | no (depends on above) | yes |
+
+Form `{{NAME}}`, uppercase; unknown placeholders fail. `setup` fields (`from`/`to`/`command`/`dir`) expand per the `setup` column.
+
 ## Agent workflow
 
 1. Prefer editing inside worktrees: `mwt path <branch> <repo>` — do **not** dirty main checkouts for multi-repo tasks.
