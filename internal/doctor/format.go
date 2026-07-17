@@ -8,16 +8,21 @@ import (
 
 // FormatReport writes a human-readable doctor report to w.
 // When findings is empty, writes a single ok line.
+// When any setup_missing findings exist, appends a one-shot fix footer.
 func FormatReport(w io.Writer, findings []Finding) error {
 	if len(findings) == 0 {
 		_, err := fmt.Fprintln(w, "ok: no issues found")
 		return err
 	}
+	hasSetupMissing := false
 	for i, f := range findings {
 		if i > 0 {
 			if _, err := fmt.Fprintln(w); err != nil {
 				return err
 			}
+		}
+		if f.Kind == KindSetupMissing {
+			hasSetupMissing = true
 		}
 		header := fmt.Sprintf("[%s]", f.Kind)
 		if f.Repo != "" {
@@ -47,6 +52,17 @@ func FormatReport(w io.Writer, findings []Finding) error {
 					return err
 				}
 			}
+		}
+	}
+	if hasSetupMissing {
+		if _, err := fmt.Fprintln(w); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintln(w, "to fix all setup_missing:"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintln(w, "  mwt doctor --fix"); err != nil {
+			return err
 		}
 	}
 	return nil

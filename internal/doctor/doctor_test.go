@@ -395,6 +395,28 @@ func TestFormatReport_EmptyAndFindings(t *testing.T) {
 	if !strings.Contains(out, "branch: feat") || !strings.Contains(out, "suggest:") {
 		t.Fatalf("body: %q", out)
 	}
+	if strings.Contains(out, "mwt doctor --fix") {
+		t.Fatalf("prunable-only report should not suggest doctor --fix: %q", out)
+	}
+
+	buf.Reset()
+	err = doctor.FormatReport(&buf, []doctor.Finding{{
+		Kind:    doctor.KindSetupMissing,
+		Repo:    "sap",
+		Branch:  "feat",
+		Message: "setup copy destination missing: /wt/.env",
+		Suggest: []string{"mwt setup feat --repos sap"},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	out = buf.String()
+	if !strings.Contains(out, "to fix all setup_missing:") {
+		t.Fatalf("missing footer header: %q", out)
+	}
+	if !strings.Contains(out, "mwt doctor --fix") {
+		t.Fatalf("missing doctor --fix footer: %q", out)
+	}
 }
 
 func TestCheck_RealFS_UnregisteredAndDualDefault(t *testing.T) {

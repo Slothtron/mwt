@@ -213,7 +213,9 @@ v1 步骤类型见 §6.2；后续可扩展 `mkdir` / `link` 等而不改命令�
 | `git worktree list` 路径不存在 | prune + 按模板 re-add |
 | 磁盘有目录但未注册 | 引导正式 `add` 或清理脏目录 |
 | 主检出目录不存在（`ROOT`/`repos` 项） | 配置或工作区布局错误提示 |
-| （可选）setup 相关文件缺失 | 提示 `mwt setup <branch>`；不硬编码 `.env` |
+| （可选）setup 相关文件缺失 | 提示 `mwt setup <branch> [--repos …]`；汇总建议 `mwt doctor --fix`；不硬编码 `.env` |
+
+`mwt doctor --fix`：仅对全部 `setup_missing` 按分支聚合补跑 setup（跨 repo 一键修复）；**不**自动 prune、**不**删除未注册目录、**不**自动 `mwt add`。支持 `--continue`（某仓 setup 失败后继续，最终仍非 0）。
 
 ### 5.4 与竞品分工
 

@@ -56,9 +56,9 @@ mwt rm my-feature
 | `mwt list` | 聚合各仓 worktree；可按 `--branch` 过滤 |
 | `mwt path <branch> <repo>` | 打印绝对路径（模板渲染，不要求目录已存在） |
 | `mwt setup <branch>` | 对已有 worktree 补跑 setup |
-| `mwt doctor` | 巡检 prunable / 未注册目录 / 主检出缺失等，只报告不自动删 |
+| `mwt doctor` | 巡检 prunable / 未注册目录 / 主检出缺失 / setup 缺失等；`--fix` 仅自动补跑 `setup_missing`（不 prune、不删目录） |
 
-常用 flags：`--repos`（子集）、`--continue`（某仓失败后继续，仍非 0 退出）。
+常用 flags：`--repos`（子集）、`--continue`（某仓失败后继续，仍非 0 退出；`doctor --fix` 亦支持）。
 
 ## Configuration
 

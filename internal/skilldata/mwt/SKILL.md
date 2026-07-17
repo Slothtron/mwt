@@ -27,11 +27,11 @@ mwt skill sync --dir PATH      # → PATH/mwt
 | `mwt list` | Aggregate worktrees; `--branch` filter |
 | `mwt path <branch> <repo>` | Print absolute worktree path (for Agents / scripts) |
 | `mwt setup <branch>` | Re-run setup on existing worktrees |
-| `mwt doctor` | Report prunable / unregistered / missing main; no auto-delete |
+| `mwt doctor` | Report prunable / unregistered / missing main / setup_missing; `--fix` re-runs setup for all setup_missing only |
 | `mwt version` | Binary version (`--version` / `-v` also work) |
 | `mwt skill sync` | Install this skill into `~/.agents/skills/mwt` |
 
-Shared flags: `--repos`, `--continue`.
+Shared flags: `--repos`, `--continue` (`doctor --fix` also accepts `--continue`).
 
 ## Configuration (`.mwt.yaml`)
 
