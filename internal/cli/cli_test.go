@@ -122,9 +122,7 @@ func TestAdd_CreatesAndRunsSetup(t *testing.T) {
 	if len(s.calls) != 2 {
 		t.Fatalf("setup calls=%v", s.calls)
 	}
-	wantOAuth := filepath.Join(root, "worktrees", "oauth", "feat", "oauth")
-	wantSap := filepath.Join(root, "worktrees", "sap", "feat", "sap")
-	if !strings.Contains(out, "oauth\t"+wantOAuth) || !strings.Contains(out, "sap\t"+wantSap) {
+	if !strings.Contains(out, "oauth  worktrees/oauth/feat/oauth") || !strings.Contains(out, "sap    worktrees/sap/feat/sap") {
 		t.Fatalf("stdout=%q", out)
 	}
 	if len(mkdirs) != 2 {
@@ -247,8 +245,7 @@ func TestAdd_ContinueAggregatesErrors(t *testing.T) {
 	if len(g.adds) != 2 {
 		t.Fatalf("continue should try both, adds=%v", g.adds)
 	}
-	wantSap := filepath.Join(root, "worktrees", "sap", "feat", "sap")
-	if !strings.Contains(out, "sap\t"+wantSap) {
+	if !strings.Contains(out, "sap    worktrees/sap/feat/sap") {
 		t.Fatalf("successful repo should still print, out=%q", out)
 	}
 }
@@ -270,8 +267,7 @@ func TestRm_Force(t *testing.T) {
 	if len(g.removes) != 1 || !strings.HasSuffix(g.removes[0], "|true") {
 		t.Fatalf("removes=%v", g.removes)
 	}
-	want := filepath.Join(root, "worktrees", "sap", "feat", "sap")
-	if !strings.Contains(out, "sap\t"+want) {
+	if !strings.Contains(out, "sap  worktrees/sap/feat/sap") {
 		t.Fatalf("out=%q", out)
 	}
 }
@@ -282,11 +278,11 @@ func TestList_BranchFilter(t *testing.T) {
 	g := &fakeGit{
 		lists: map[string][]git.Worktree{
 			"sap": {
-				{Path: "/wt/sap/a", Branch: "feat"},
-				{Path: "/wt/sap/b", Branch: "other"},
+				{Path: filepath.Join(root, "worktrees", "sap", "a"), Branch: "feat"},
+				{Path: filepath.Join(root, "worktrees", "sap", "b"), Branch: "other"},
 			},
 			"oauth": {
-				{Path: "/wt/oauth/a", Branch: "feat"},
+				{Path: filepath.Join(root, "worktrees", "oauth", "a"), Branch: "feat"},
 			},
 		},
 	}
@@ -303,7 +299,10 @@ func TestList_BranchFilter(t *testing.T) {
 	if strings.Contains(out, "other") {
 		t.Fatalf("filter failed: %q", out)
 	}
-	if !strings.Contains(out, "sap\tfeat\t/wt/sap/a") || !strings.Contains(out, "oauth\tfeat\t/wt/oauth/a") {
+	if !strings.Contains(out, "REPO") || !strings.Contains(out, "BRANCH") || !strings.Contains(out, "PATH") {
+		t.Fatalf("missing header: %q", out)
+	}
+	if !strings.Contains(out, "sap    feat    worktrees/sap/a") || !strings.Contains(out, "oauth  feat    worktrees/oauth/a") {
 		t.Fatalf("out=%q", out)
 	}
 }
@@ -313,7 +312,7 @@ func TestList_RepoFailureNonZero(t *testing.T) {
 	cfg := testCfg(t, root, "sap", "oauth")
 	g := &fakeGit{
 		lists: map[string][]git.Worktree{
-			"oauth": {{Path: "/wt/oauth/a", Branch: "feat"}},
+			"oauth": {{Path: filepath.Join(root, "worktrees", "oauth", "a"), Branch: "feat"}},
 		},
 		listErr: map[string]error{"sap": errors.New("missing")},
 	}
@@ -327,7 +326,7 @@ func TestList_RepoFailureNonZero(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if !strings.Contains(out, "oauth\tfeat\t/wt/oauth/a") {
+	if !strings.Contains(out, "oauth  feat    worktrees/oauth/a") {
 		t.Fatalf("should still print successes: %q", out)
 	}
 }
@@ -380,7 +379,7 @@ func TestSetup_RunsOnExistingWorktree(t *testing.T) {
 	if len(s.calls) != 2 || s.calls[0] != "oauth" || s.calls[1] != "sap" {
 		t.Fatalf("setup calls=%v", s.calls)
 	}
-	if !strings.Contains(out, "oauth\t"+wtOAuth) || !strings.Contains(out, "sap\t"+wtSap) {
+	if !strings.Contains(out, "oauth  worktrees/oauth/feat/oauth") || !strings.Contains(out, "sap    worktrees/sap/feat/sap") {
 		t.Fatalf("stdout=%q", out)
 	}
 }
@@ -419,7 +418,7 @@ func TestSetup_AfterAddNoSetup(t *testing.T) {
 	if len(s.calls) != 1 || s.calls[0] != "sap" {
 		t.Fatalf("setup calls=%v", s.calls)
 	}
-	if !strings.Contains(out, "sap\t"+wt) {
+	if !strings.Contains(out, "sap  worktrees/sap/feat/sap") {
 		t.Fatalf("stdout=%q", out)
 	}
 }

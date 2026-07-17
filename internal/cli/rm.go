@@ -51,6 +51,7 @@ func runRm(d Deps, branch string, opts rmOptions) error {
 	}
 
 	out := d.stdout()
+	repoWidth := maxRepoWidth(repos)
 	return runSerial(repos, opts.continueOn, func(repo string) error {
 		ctx, err := resolveRepo(cfg, repo, branch)
 		if err != nil {
@@ -59,7 +60,7 @@ func runRm(d Deps, branch string, opts rmOptions) error {
 		if err := d.git().Remove(ctx.MainPath, ctx.WorktreePath, opts.force); err != nil {
 			return err
 		}
-		fmt.Fprintf(out, "%s\t%s\n", repo, ctx.WorktreePath)
+		fmt.Fprintf(out, "%-*s  %s\n", repoWidth, repo, displayPath(cfg.MetaRoot, ctx.WorktreePath))
 		return nil
 	})
 }

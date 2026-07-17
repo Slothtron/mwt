@@ -70,3 +70,27 @@ func resolveRepo(cfg *config.Config, repo, branch string) (pathresolve.Context, 
 func mainPath(cfg *config.Config, repo string) string {
 	return filepath.Join(cfg.MetaRoot, repo)
 }
+
+// displayPath returns abs relative to metaRoot when possible.
+// Falls back to abs if Rel fails or the result escapes metaRoot ("..").
+func displayPath(metaRoot, abs string) string {
+	if metaRoot == "" || abs == "" {
+		return abs
+	}
+	rel, err := filepath.Rel(metaRoot, abs)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return abs
+	}
+	return rel
+}
+
+// maxRepoWidth returns the display width for padding repo names.
+func maxRepoWidth(repos []string) int {
+	w := 0
+	for _, r := range repos {
+		if n := len(r); n > w {
+			w = n
+		}
+	}
+	return w
+}

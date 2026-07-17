@@ -56,6 +56,7 @@ func runAdd(d Deps, branch string, opts addOptions) error {
 	}
 
 	out := d.stdout()
+	repoWidth := maxRepoWidth(repos)
 	return runSerial(repos, opts.continueOn, func(repo string) error {
 		ctx, err := resolveRepo(cfg, repo, branch)
 		if err != nil {
@@ -73,7 +74,7 @@ func runAdd(d Deps, branch string, opts addOptions) error {
 				return err
 			}
 		}
-		fmt.Fprintf(out, "%s\t%s\n", repo, ctx.WorktreePath)
+		fmt.Fprintf(out, "%-*s  %s\n", repoWidth, repo, displayPath(cfg.MetaRoot, ctx.WorktreePath))
 		return nil
 	})
 }
