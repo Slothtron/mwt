@@ -12,7 +12,7 @@ pub mod find;
 pub mod load;
 mod setup_step;
 
-pub use find::{find_config_file, CONFIG_FILE_NAME};
+pub use find::{CONFIG_FILE_NAME, find_config_file};
 pub use load::{git_exists_at, load, load_from_dir};
 pub use setup_step::SetupStepWire;
 
@@ -55,10 +55,16 @@ pub struct SetupStep {
 
 impl SetupStep {
     pub fn copy(action: CopyAction) -> Self {
-        Self { copy: Some(action), run: None }
+        Self {
+            copy: Some(action),
+            run: None,
+        }
     }
     pub fn run(action: RunAction) -> Self {
-        Self { copy: None, run: Some(action) }
+        Self {
+            copy: None,
+            run: Some(action),
+        }
     }
 }
 

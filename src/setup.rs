@@ -96,7 +96,11 @@ impl Default for Runner {
 
 impl Runner {
     pub fn new() -> Self {
-        Self { stdout: None, stderr: None, command: None }
+        Self {
+            stdout: None,
+            stderr: None,
+            command: None,
+        }
     }
 
     pub fn with_stdout(mut self, stdio: Stdio) -> Self {
@@ -136,8 +140,12 @@ impl Runner {
 
     fn copy(&self, ctx: &Context, action: &CopyAction) -> Result<(), SetupError> {
         use std::os::unix::fs::PermissionsExt;
-        let from_raw = ctx.expand(&action.from, Stage::Setup).map_err(SetupError::CopyFrom)?;
-        let to_raw = ctx.expand(&action.to, Stage::Setup).map_err(SetupError::CopyTo)?;
+        let from_raw = ctx
+            .expand(&action.from, Stage::Setup)
+            .map_err(SetupError::CopyFrom)?;
+        let to_raw = ctx
+            .expand(&action.to, Stage::Setup)
+            .map_err(SetupError::CopyTo)?;
 
         let from = abs_or_join(&from_raw, &ctx.root);
         let to = abs_or_join(&to_raw, &ctx.worktree_path);
@@ -147,20 +155,27 @@ impl Runner {
                 Ok(_) => return Ok(()),
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
                 Err(e) => {
-                    return Err(SetupError::StatDest { path: to, source: e });
+                    return Err(SetupError::StatDest {
+                        path: to,
+                        source: e,
+                    });
                 }
             }
         }
 
         let src_info = match fs::symlink_metadata(&from) {
             Ok(m) => m,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound
-                && action.skip_if_missing_src_or_default() =>
+            Err(e)
+                if e.kind() == std::io::ErrorKind::NotFound
+                    && action.skip_if_missing_src_or_default() =>
             {
                 return Ok(());
             }
             Err(e) => {
-                return Err(SetupError::StatSrc { path: from, source: e });
+                return Err(SetupError::StatSrc {
+                    path: from,
+                    source: e,
+                });
             }
         };
 
@@ -289,7 +304,7 @@ fn clean(p: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{CopyAction, RunAction, SetupStep};
+    use crate::config::SetupStep;
     use crate::pathresolve::Context;
     use std::path::PathBuf;
 
@@ -302,7 +317,11 @@ mod tests {
             main_path: root.join("api"),
             branch: "feat-x".into(),
             worktree_path: PathBuf::from(worktree),
-            worktree_name: Path::new(worktree).file_name().unwrap().to_string_lossy().to_string(),
+            worktree_name: Path::new(worktree)
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
         }
     }
 
@@ -324,7 +343,10 @@ mod tests {
     #[test]
     fn rejects_no_action_step() {
         let mut r = Runner::new();
-        let step = SetupStep { copy: None, run: None };
+        let step = SetupStep {
+            copy: None,
+            run: None,
+        };
         let err = r.run(&ctx("/tmp/wt"), &[step]).unwrap_err();
         assert!(matches!(err, SetupError::Step { .. }));
     }

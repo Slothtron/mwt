@@ -5,7 +5,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use mwt::git::{parse_worktree_porcelain, Adapter, ExecRunner, Runner};
+use mwt::git::{Adapter, ExecRunner, Runner, parse_worktree_porcelain};
 
 fn git_available() -> bool {
     Command::new("git").arg("--version").output().is_ok()

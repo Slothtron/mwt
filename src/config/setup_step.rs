@@ -51,21 +51,27 @@ impl<'de> Deserialize<'de> for SetupStepWire {
                     match key.as_str() {
                         "copy" => {
                             if copy.is_some() || run.is_some() || other.is_some() {
-                                return Err(de::Error::custom("step must have exactly one action key"));
+                                return Err(de::Error::custom(
+                                    "step must have exactly one action key",
+                                ));
                             }
                             let v: CopyAction = map.next_value()?;
                             copy = Some(v);
                         }
                         "run" => {
                             if copy.is_some() || run.is_some() || other.is_some() {
-                                return Err(de::Error::custom("step must have exactly one action key"));
+                                return Err(de::Error::custom(
+                                    "step must have exactly one action key",
+                                ));
                             }
                             let v: RunAction = map.next_value()?;
                             run = Some(v);
                         }
                         _ => {
                             if copy.is_some() || run.is_some() {
-                                return Err(de::Error::custom("step must have exactly one action key"));
+                                return Err(de::Error::custom(
+                                    "step must have exactly one action key",
+                                ));
                             }
                             other = Some(key);
                             let _: serde::de::IgnoredAny = map.next_value()?;
@@ -83,9 +89,9 @@ impl<'de> Deserialize<'de> for SetupStepWire {
                     (None, None, Some(name)) => {
                         Err(de::Error::custom(format!("unknown setup action {name:?}")))
                     }
-                    (None, None, None) => {
-                        Err(de::Error::custom("setup step must be a mapping with one action key"))
-                    }
+                    (None, None, None) => Err(de::Error::custom(
+                        "setup step must be a mapping with one action key",
+                    )),
                     _ => unreachable!("guarded by extra_key and per-key checks above"),
                 }
             }

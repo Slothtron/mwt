@@ -6,8 +6,8 @@ use serde::Deserialize;
 use thiserror::Error;
 
 use super::{
-    Config, ConfigError, SetupStepWire, DEFAULT_WORKTREE_PATH_WITHOUT_GIT,
-    DEFAULT_WORKTREE_PATH_WITH_GIT,
+    Config, ConfigError, DEFAULT_WORKTREE_PATH_WITH_GIT, DEFAULT_WORKTREE_PATH_WITHOUT_GIT,
+    SetupStepWire,
 };
 
 /// Top-level wire format. Field names mirror the YAML keys exactly.
@@ -27,7 +27,10 @@ struct ConfigWire {
 pub fn load(config_path: &Path) -> Result<Config, LoadError> {
     let abs_path = config_path
         .canonicalize()
-        .map_err(|e| LoadError::ResolvePath { path: config_path.to_path_buf(), source: e })?;
+        .map_err(|e| LoadError::ResolvePath {
+            path: config_path.to_path_buf(),
+            source: e,
+        })?;
     let data = std::fs::read(&abs_path).map_err(|e| LoadError::Read {
         path: abs_path.clone(),
         source: e,
@@ -42,7 +45,11 @@ pub fn load(config_path: &Path) -> Result<Config, LoadError> {
         .ok_or_else(|| LoadError::InvalidPath(abs_path.clone()))?
         .to_path_buf();
 
-    let root = if wire.root.is_empty() { ".".to_string() } else { wire.root };
+    let root = if wire.root.is_empty() {
+        ".".to_string()
+    } else {
+        wire.root
+    };
     let meta_root = config_dir.join(&root).canonicalize().unwrap_or_else(|_| {
         // Mirrors Go: `filepath.Abs(filepath.Join(configDir, cfg.Root))`.
         // We use a non-canonicalizing path if the dir doesn't yet exist,
@@ -82,9 +89,7 @@ pub fn load(config_path: &Path) -> Result<Config, LoadError> {
 pub fn load_from_dir(start_dir: &Path) -> Result<Config, LoadError> {
     let path = super::find_config_file(start_dir).map_err(|e| match e {
         super::find::FindError::NotFound(p) => LoadError::NotFound(p),
-        super::find::FindError::Stat { path, source } => {
-            LoadError::Read { path, source }
-        }
+        super::find::FindError::Stat { path, source } => LoadError::Read { path, source },
     })?;
     load(&path)
 }
@@ -133,11 +138,7 @@ mod tests {
     fn applies_with_git_default() {
         let tmp = tempfile::tempdir().unwrap();
         std::fs::create_dir_all(tmp.path().join(".git")).unwrap();
-        let cfg_path = write(
-            tmp.path(),
-            ".mwt.yaml",
-            "repos: [api]\nsetup: []\n",
-        );
+        let cfg_path = write(tmp.path(), ".mwt.yaml", "repos: [api]\nsetup: []\n");
         let cfg = load(&cfg_path).unwrap();
         assert!(cfg.has_git_at_root);
         assert_eq!(cfg.worktree_path, DEFAULT_WORKTREE_PATH_WITH_GIT);
@@ -147,11 +148,7 @@ mod tests {
     #[test]
     fn applies_without_git_default() {
         let tmp = tempfile::tempdir().unwrap();
-        let cfg_path = write(
-            tmp.path(),
-            ".mwt.yaml",
-            "repos: [api]\n",
-        );
+        let cfg_path = write(tmp.path(), ".mwt.yaml", "repos: [api]\n");
         let cfg = load(&cfg_path).unwrap();
         assert!(!cfg.has_git_at_root);
         assert_eq!(cfg.worktree_path, DEFAULT_WORKTREE_PATH_WITHOUT_GIT);
@@ -189,11 +186,7 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let sub = tmp.path().join("meta");
         std::fs::create_dir_all(&sub).unwrap();
-        let cfg_path = write(
-            &sub,
-            ".mwt.yaml",
-            "root: \"../repos\"\nrepos: [api]\n",
-        );
+        let cfg_path = write(&sub, ".mwt.yaml", "root: \"../repos\"\nrepos: [api]\n");
         let cfg = load(&cfg_path).unwrap();
         assert_eq!(cfg.root, "../repos");
         // meta_root 应为 tmp/repos 的绝对路径
@@ -203,11 +196,7 @@ mod tests {
     #[test]
     fn rejects_empty_repo() {
         let tmp = tempfile::tempdir().unwrap();
-        let cfg_path = write(
-            tmp.path(),
-            ".mwt.yaml",
-            "repos: [\"\"]\n",
-        );
+        let cfg_path = write(tmp.path(), ".mwt.yaml", "repos: [\"\"]\n");
         let err = load(&cfg_path).unwrap_err();
         assert!(err.to_string().contains("repos[0] is empty"));
     }

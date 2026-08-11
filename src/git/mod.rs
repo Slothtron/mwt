@@ -10,7 +10,7 @@ use thiserror::Error;
 
 pub mod porcelain;
 
-pub use porcelain::{parse_worktree_porcelain, Worktree};
+pub use porcelain::{Worktree, parse_worktree_porcelain};
 
 /// Executes one git command: `git -C <repo_path> <args...>`.
 pub trait Runner: Send + Sync {
@@ -28,7 +28,9 @@ pub struct GitOutput {
 
 impl GitOutput {
     pub fn empty() -> Self {
-        Self { stdout: String::new() }
+        Self {
+            stdout: String::new(),
+        }
     }
 }
 
@@ -41,7 +43,9 @@ pub struct ExecRunner {
 
 impl ExecRunner {
     pub fn new() -> Self {
-        Self { bin: "git".to_string() }
+        Self {
+            bin: "git".to_string(),
+        }
     }
 
     pub fn with_bin(bin: impl Into<String>) -> Self {
@@ -55,7 +59,11 @@ impl Runner for ExecRunner {
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,
     {
-        let bin = if self.bin.is_empty() { "git" } else { &self.bin };
+        let bin = if self.bin.is_empty() {
+            "git"
+        } else {
+            &self.bin
+        };
         let collected: Vec<String> = args
             .into_iter()
             .map(|s| s.as_ref().to_string_lossy().to_string())
@@ -72,7 +80,10 @@ impl Runner for ExecRunner {
             })?;
 
         let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-        let stderr = String::from_utf8_lossy(&output.stderr).into_owned().trim().to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr)
+            .into_owned()
+            .trim()
+            .to_string();
 
         if output.status.success() {
             Ok(GitOutput { stdout })
@@ -137,7 +148,15 @@ pub struct Adapter<R: Runner> {
 
 impl Adapter<ExecRunner> {
     pub fn new() -> Self {
-        Self { runner: ExecRunner::new() }
+        Self {
+            runner: ExecRunner::new(),
+        }
+    }
+}
+
+impl Default for Adapter<ExecRunner> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -186,7 +205,12 @@ impl<R: Runner> Adapter<R> {
 
         let primary = self.runner.git(
             repo_path,
-            ["worktree", "add", worktree_path.to_str().unwrap_or("."), branch],
+            [
+                "worktree",
+                "add",
+                worktree_path.to_str().unwrap_or("."),
+                branch,
+            ],
         );
         if primary.is_ok() {
             return Ok(());
@@ -194,7 +218,7 @@ impl<R: Runner> Adapter<R> {
 
         // No retry without a start point.
         if from.is_empty() {
-            return primary.map(|_| ()).map_err(|e| e);
+            return primary.map(|_| ());
         }
 
         // Retry only if the branch does not yet exist.
@@ -222,7 +246,11 @@ impl<R: Runner> Adapter<R> {
                 args: vec!["show-ref".into(), "--verify".into(), "--quiet".into()],
                 stderr: format!(
                     "{} (also failed to check branch: {})",
-                    primary.as_ref().err().map(|e| e.to_string()).unwrap_or_default(),
+                    primary
+                        .as_ref()
+                        .err()
+                        .map(|e| e.to_string())
+                        .unwrap_or_default(),
                     branch_err
                 ),
                 code: None,
@@ -258,9 +286,7 @@ impl<R: Runner> Adapter<R> {
             args.push("--force".into());
         }
         args.push(worktree_path.to_string_lossy().to_string());
-        self.runner
-            .git(repo_path, &args)
-            .map(|_| ())
+        self.runner.git(repo_path, &args).map(|_| ())
     }
 
     /// `git worktree list --porcelain`.
@@ -273,7 +299,9 @@ impl<R: Runner> Adapter<R> {
                 code: None,
             });
         }
-        let out = self.runner.git(repo_path, ["worktree", "list", "--porcelain"])?;
+        let out = self
+            .runner
+            .git(repo_path, ["worktree", "list", "--porcelain"])?;
         Ok(parse_worktree_porcelain(&out.stdout))
     }
 
@@ -297,7 +325,10 @@ impl<R: Runner> Adapter<R> {
             });
         }
         let ref_ = format!("refs/heads/{branch}");
-        match self.runner.git(repo_path, ["show-ref", "--verify", "--quiet", &ref_]) {
+        match self
+            .runner
+            .git(repo_path, ["show-ref", "--verify", "--quiet", &ref_])
+        {
             Ok(_) => Ok(true),
             Err(e) if e.exit_code_is(1) => Ok(false),
             Err(e) => Err(e),

@@ -8,9 +8,12 @@
 #![warn(clippy::all)]
 
 pub mod config;
+pub mod doctor;
 pub mod git;
+pub mod initscan;
 pub mod pathresolve;
 pub mod setup;
+pub mod version;
 
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")

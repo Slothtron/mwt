@@ -28,7 +28,10 @@ pub fn find_config_file(start_dir: &Path) -> Result<PathBuf, FindError> {
                 // exists but is a directory; treat as not-found and keep walking
             }
             Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
-                return Err(FindError::Stat { path: candidate, source: e });
+                return Err(FindError::Stat {
+                    path: candidate,
+                    source: e,
+                });
             }
             _ => {}
         }

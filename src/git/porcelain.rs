@@ -18,10 +18,10 @@ pub fn parse_worktree_porcelain(out: &str) -> Vec<Worktree> {
     let mut have = false;
 
     let flush = |cur: &mut Option<Worktree>, have: &mut bool, entries: &mut Vec<Worktree>| {
-        if let Some(w) = cur.take() {
-            if *have {
-                entries.push(w);
-            }
+        if let Some(w) = cur.take()
+            && *have
+        {
+            entries.push(w);
         }
         *have = false;
     };

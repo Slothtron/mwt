@@ -50,7 +50,10 @@ impl Context {
             return Err(ResolveError::Empty("meta root"));
         }
         if !meta_root.is_absolute() {
-            return Err(ResolveError::NotAbsolute("meta root", meta_root.to_path_buf()));
+            return Err(ResolveError::NotAbsolute(
+                "meta root",
+                meta_root.to_path_buf(),
+            ));
         }
         if worktree_path_template.is_empty() {
             return Err(ResolveError::Empty("worktree_path template"));
@@ -94,7 +97,11 @@ impl Context {
     }
 
     /// Build a Context using fields from a loaded [`Config`].
-    pub fn resolve_from_config(cfg: &Config, repo: &str, branch: &str) -> Result<Self, ResolveError> {
+    pub fn resolve_from_config(
+        cfg: &Config,
+        repo: &str,
+        branch: &str,
+    ) -> Result<Self, ResolveError> {
         Self::resolve(&cfg.meta_root, &cfg.worktree_path, repo, branch)
     }
 
@@ -137,7 +144,10 @@ impl Context {
         Ok(out.into_owned())
     }
 
-    fn values_for_stage(&self, stage: Stage) -> Result<std::collections::HashMap<&'static str, String>, ExpandError> {
+    fn values_for_stage(
+        &self,
+        stage: Stage,
+    ) -> Result<std::collections::HashMap<&'static str, String>, ExpandError> {
         use std::collections::HashMap;
         let mut base: HashMap<&'static str, String> = HashMap::new();
         base.insert(PH_ROOT, self.root.to_string_lossy().to_string());
@@ -151,7 +161,10 @@ impl Context {
                 if self.worktree_path.as_os_str().is_empty() {
                     return Err(ExpandError::WorktreePathUnresolved);
                 }
-                base.insert(PH_WORKTREE_PATH, self.worktree_path.to_string_lossy().to_string());
+                base.insert(
+                    PH_WORKTREE_PATH,
+                    self.worktree_path.to_string_lossy().to_string(),
+                );
                 base.insert(PH_WORKTREE_NAME, self.worktree_name.clone());
                 Ok(base)
             }
@@ -219,7 +232,10 @@ mod tests {
     #[test]
     fn renders_template_at_worktree_path_stage() {
         let c = ctx_with("feat-x");
-        assert_eq!(c.worktree_path, PathBuf::from("/meta/.worktrees/api/feat-x/api"));
+        assert_eq!(
+            c.worktree_path,
+            PathBuf::from("/meta/.worktrees/api/feat-x/api")
+        );
         assert_eq!(c.worktree_name, "api");
         assert_eq!(c.main_path, PathBuf::from("/meta/api"));
     }
@@ -227,14 +243,18 @@ mod tests {
     #[test]
     fn forbidden_in_worktree_path_stage() {
         let c = ctx_with("feat-x");
-        let err = c.expand("{{WORKTREE_PATH}}", Stage::WorktreePath).unwrap_err();
+        let err = c
+            .expand("{{WORKTREE_PATH}}", Stage::WorktreePath)
+            .unwrap_err();
         assert!(matches!(err, ExpandError::ForbiddenInWorktreePath(_)));
     }
 
     #[test]
     fn allowed_in_setup_stage() {
         let c = ctx_with("feat-x");
-        let out = c.expand("cp {{ROOT}}/x {{WORKTREE_PATH}}/x", Stage::Setup).unwrap();
+        let out = c
+            .expand("cp {{ROOT}}/x {{WORKTREE_PATH}}/x", Stage::Setup)
+            .unwrap();
         assert_eq!(out, "cp /meta/x /meta/.worktrees/api/feat-x/api/x");
     }
 
@@ -281,13 +301,7 @@ mod tests {
 
     #[test]
     fn rejects_relative_meta_root() {
-        let err = Context::resolve(
-            Path::new("rel"),
-            "wt",
-            "api",
-            "main",
-        )
-        .unwrap_err();
+        let err = Context::resolve(Path::new("rel"), "wt", "api", "main").unwrap_err();
         assert!(matches!(err, ResolveError::NotAbsolute(_, _)));
     }
 }
