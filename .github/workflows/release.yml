@@ -1,0 +1,113 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            cross: true
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            windows: true
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (linux aarch64)
+        if: matrix.cross
+        run: cargo install cross --locked
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="${{ matrix.target }}"
+          # No build.rs: inject version via env (src/version.rs option_env).
+          export MWT_COMMIT="${GITHUB_SHA:0:8}"
+          export MWT_BUILD_DATE="$(date -u +%Y-%m-%d)"
+          if [[ "${{ matrix.cross }}" == "true" ]]; then
+            cross build --release --target "$TARGET"
+          else
+            cargo build --release --target "$TARGET"
+          fi
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="${{ matrix.target }}"
+          BIN_DIR="target/${TARGET}/release"
+          EXT=""
+          if [[ "${{ matrix.windows }}" == "true" ]]; then
+            EXT=".exe"
+          fi
+          # OS/ARCH labels for asset names
+          case "$TARGET" in
+            x86_64-unknown-linux-gnu) OS=linux;  ARCH=x64 ;;
+            aarch64-unknown-linux-gnu) OS=linux; ARCH=arm64 ;;
+            x86_64-apple-darwin)       OS=darwin; ARCH=x64 ;;
+            aarch64-apple-darwin)      OS=darwin; ARCH=arm64 ;;
+            x86_64-pc-windows-msvc)    OS=windows; ARCH=x64 ;;
+            *) echo "unknown target $TARGET"; exit 1 ;;
+          esac
+          # Keep repo-relative layout so `./scripts/install-skill.sh` and
+          # `mwt skill install` resolve `./skills/mwt` from the unpacked dir.
+          pkg="dist/mwt-${OS}-${ARCH}"
+          mkdir -p "$pkg/scripts" "$pkg/skills/mwt"
+          cp "$BIN_DIR/mwt${EXT}" "$pkg/mwt${EXT}"
+          cp scripts/install-skill.sh "$pkg/scripts/install-skill.sh"
+          cp skills/mwt/SKILL.md "$pkg/skills/mwt/SKILL.md"
+          tar -C dist -czf "dist/mwt-${OS}-${ARCH}.tar.gz" "$(basename "$pkg")"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bins-${{ matrix.target }}
+          path: dist/mwt-*.tar.gz
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Collect assets + checksums
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          find artifacts -type f -name 'mwt-*.tar.gz' -exec cp {} release/ \;
+          cd release
+          sha256sum mwt-*.tar.gz > SHA256SUMS
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
