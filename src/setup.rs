@@ -137,7 +137,6 @@ impl Runner {
     }
 
     fn copy(&self, ctx: &Context, action: &CopyAction) -> Result<(), SetupError> {
-        use std::os::unix::fs::PermissionsExt;
         let from_raw = ctx
             .expand(&action.from, Stage::Setup)
             .map_err(SetupError::CopyFrom)?;
@@ -181,7 +180,7 @@ impl Runner {
             return Err(SetupError::SourceIsDir(from));
         }
 
-        self.copy_file(&from, &to, src_info.permissions().mode())?;
+        self.copy_file(&from, &to, &src_info)?;
         Ok(())
     }
 
@@ -230,8 +229,12 @@ impl Runner {
         }
     }
 
-    fn copy_file(&self, from: &Path, to: &Path, perm: u32) -> Result<(), SetupError> {
-        use std::os::unix::fs::PermissionsExt;
+    fn copy_file(
+        &self,
+        from: &Path,
+        to: &Path,
+        src_info: &fs::Metadata,
+    ) -> Result<(), SetupError> {
         let data = fs::read(from).map_err(|e| SetupError::Copy {
             from: from.to_path_buf(),
             to: to.to_path_buf(),
@@ -266,7 +269,16 @@ impl Runner {
                 source: e,
             })?;
         }
-        let _ = std::fs::set_permissions(to, std::fs::Permissions::from_mode(perm));
+        // Preserve the source's mode (e.g. the executable bit) on Unix. On
+        // Windows permission bits don't exist, so just keep the copied bytes.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(
+                to,
+                std::fs::Permissions::from_mode(src_info.permissions().mode()),
+            );
+        }
         Ok(())
     }
 }
