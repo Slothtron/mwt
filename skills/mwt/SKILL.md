@@ -2,7 +2,7 @@
 name: mwt
 version: "0.3.0"
 description: >-
-  Manage polyrepo Git worktrees with the mwt CLI (.mwt.yaml, add/rm/list/path/setup/doctor/init).
+  Manage polyrepo Git worktrees with the mwt CLI (.mwt.yaml, add/rm/list/path/setup/doctor/init/skill install).
   Use when the user mentions mwt, .mwt.yaml, multi-repo worktrees, or polyrepo branch checkout paths.
 ---
 
@@ -13,10 +13,14 @@ CLI that creates / removes / lists / doctors Git worktrees across multiple indep
 ## Install skill (user machine)
 
 ```bash
-mwt skill sync                 # → ~/.agents/skills/mwt
-mwt skill sync --force         # overwrite
-mwt skill sync --dir PATH      # → PATH/mwt
+mwt skill install            # → ~/.agents/skills/mwt
+mwt skill install --force    # overwrite
+mwt skill install --dir PATH # → PATH/mwt
+mwt skill install --dry-run  # print plan only
 ```
+
+等价于仓库脚本 `./scripts/install-skill.sh`（二者行为一致）。`mwt doctor` 会在
+未安装 skill 或版本不符时于 stderr 打印一行 `hint:`。
 
 ## Commands
 
@@ -25,12 +29,12 @@ mwt skill sync --dir PATH      # → PATH/mwt
 | `mwt init` | Scan cwd for Git checkouts; write `.mwt.yaml` with `worktree_path` |
 | `mwt add <branch>` | `git worktree add` per repo; default setup; `--from`, `--no-setup` |
 | `mwt rm <branch>` | Remove worktrees; `--force` if dirty/residual |
-| `mwt list` | Aggregate worktrees; `--branch` filter |
-| `mwt path <branch> <repo>` | Print absolute worktree path (for Agents / scripts) |
+| `mwt list` | Aggregate worktrees; `--branch` filter; `--format <table\|json>` |
+| `mwt path <branch> <repo>` | Print absolute worktree path (for Agents / scripts); `--format <table\|json>` |
 | `mwt setup <branch>` | Re-run setup on existing worktrees |
-| `mwt doctor` | Report prunable / unregistered / missing main / setup_missing; `--fix` re-runs setup for all setup_missing only |
+| `mwt doctor` | Report prunable / unregistered / missing main / setup_missing; `--fix` re-runs setup for all setup_missing only; `--format <table\|json>` |
 | `mwt version` | Binary version (`--version` / `-v` also work) |
-| `mwt skill sync` | Install this skill into `~/.agents/skills/mwt` |
+| `mwt skill install` | Install this skill into `~/.agents/skills/mwt` |
 
 Shared flags: `--repos`, `--continue` (`doctor --fix` also accepts `--continue`).
 
