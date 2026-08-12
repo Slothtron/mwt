@@ -4,27 +4,40 @@ polyrepo git worktree manager：按一份 `.mwt.yaml` 对多个独立 Git 仓批
 
 ## Install
 
-需要本机已安装 Go 与 `git`。
+需要本机已安装 `cargo`（与 `mise`）、`git`。开发态默认使用 `mise.toml` 钉定的 `rust = 1.96.1`。
 
 ```bash
-# 从模块安装（发布后）
-go install github.com/Slothtron/mwt/cmd/mwt@latest
-
-# 或从源码
+# 从源码（开发态）
 git clone https://github.com/Slothtron/mwt.git
 cd mwt
-go install ./cmd/mwt
+mise install           # 拉取钉定的 rust
+mise run build         # cargo build
+./target/debug/mwt --version
 
-# 可选：注入版本号（发布构建）
-go build -ldflags "-X github.com/Slothtron/mwt/internal/version.Version=0.2.0 -X github.com/Slothtron/mwt/internal/version.Commit=$(git rev-parse --short HEAD)" -o mwt ./cmd/mwt
+# 或从源码（一次性发布构建）
+cargo build --release
+./target/release/mwt --version
 ```
 
-二进制进入 `$GOBIN` / `$GOPATH/bin`，确保该目录在 `PATH` 中。使用方仓库**不**提交 `./bin/mwt` 或嵌入 `tools/mwt`。用 `mwt version` 或 `mwt --version` 查看版本。
+二进制在 `./target/{debug,release}/mwt`，把它加到 `PATH` 或拷到 `~/.local/bin/`。
 
-可选：将 Agent 技能安装到用户目录（默认 `~/.agents/skills/mwt`）：
+> **BREAKING（相对 v0.x Go 版）**：`mwt skill` 与 `mwt skill sync` 子命令已删除。Agent 技能不再嵌入二进制，改用仓库内的 `scripts/install-skill.sh`：
 
 ```bash
-mwt skill sync
+# 默认装到 ~/.agents/skills/mwt
+./scripts/install-skill.sh
+
+# 覆盖已存在的目录
+./scripts/install-skill.sh --force
+
+# 装到自定义父目录
+./scripts/install-skill.sh --dir /path/to/skills
+
+# 只打印计划不实际写入
+./scripts/install-skill.sh --dry-run
+
+# 也可走环境变量
+MWT_SKILL_DIR=/path/to/skills ./scripts/install-skill.sh
 ```
 
 ## Quick start
@@ -49,14 +62,13 @@ mwt rm my-feature
 | 命令 | 作用 |
 |------|------|
 | `mwt init` | 向下扫描 Git 主检出并生成 `.mwt.yaml`（按元根是否有 `.git` 写入 `worktree_path`）；`--depth`（默认 10）、`--dry-run`、`--force` |
-| `mwt skill sync` | 将内嵌 Agent 技能同步到 `~/.agents/skills/mwt`（`--dir`、`--force`；裸 `mwt skill` 等同 sync） |
 | `mwt version` | 打印 mwt 二进制版本（亦支持 `mwt --version` / `-v`） |
 | `mwt add <branch>` | 对各仓 `git worktree add`；可选 `--from` 建分支；默认跑 setup；`--no-setup` 跳过 |
 | `mwt rm <branch>` | 移除各仓 worktree；脏/残留可用 `--force` |
-| `mwt list` | 聚合各仓 worktree；可按 `--branch` 过滤 |
-| `mwt path <branch> <repo>` | 打印绝对路径（模板渲染，不要求目录已存在） |
+| `mwt list` | 聚合各仓 worktree；可按 `--branch` 过滤；`--format <table\|json>` |
+| `mwt path <branch> <repo>` | 打印绝对路径（模板渲染，不要求目录已存在）；`--format <table\|json>` |
 | `mwt setup <branch>` | 对已有 worktree 补跑 setup |
-| `mwt doctor` | 巡检 prunable / 未注册目录 / 主检出缺失 / setup 缺失等；`--fix` 仅自动补跑 `setup_missing`（不 prune、不删目录） |
+| `mwt doctor` | 巡检 prunable / 未注册目录 / 主检出缺失 / setup 缺失等；`--fix` 仅自动补跑 `setup_missing`（不 prune、不删目录）；`--format <table\|json>` |
 
 常用 flags：`--repos`（子集）、`--continue`（某仓失败后继续，仍非 0 退出；`doctor --fix` 亦支持）。
 
@@ -109,6 +121,21 @@ mwt rm my-feature
 - 不绑定 tmux / WezTerm
 - setup 不跑 DB migrate / 全量测试 / 起中间件
 - 不嵌入使用方仓库（无 `tools/mwt`、无 `./bin/mwt`）
+
+## Development
+
+`mise.toml` 钉定 `rust = 1.96.1`，并暴露下列 task：
+
+| Task | 作用 |
+|------|------|
+| `mise run build` | `cargo build` |
+| `mise run test` | `cargo test` |
+| `mise run test-shell` | 跑 `scripts/tests/install-skill.*.case.sh`（POSIX sh 自跑测试，无 bats 依赖） |
+| `mise run check` | `cargo clippy --all-targets -- -D warnings` |
+| `mise run lint-shell` | 对 `scripts/*.sh` 跑 `shellcheck` + `shfmt -d`（未安装则跳过） |
+| `mise run fmt` | `cargo fmt --all` |
+
+仓库静态资产 `skills/mwt/SKILL.md` 与二进制完全解耦：二进制无 `include_str!` / `include_dir!` / `vergen`，`mwt --help` 不含 `skill` 子命令。
 
 ## License
 

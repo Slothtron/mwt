@@ -95,7 +95,7 @@ impl crate::doctor::GitLister for GitListerFromDeps<'_> {
     ) -> Result<Vec<crate::git::Worktree>, crate::doctor::GitListError> {
         self.0
             .list(repo_path)
-            .map_err(|e| crate::doctor::GitListError::Other(e))
+            .map_err(crate::doctor::GitListError::Other)
     }
 }
 
