@@ -138,13 +138,13 @@ impl Fs for OsFs {
 }
 
 /// Checker runs §5.3 inspections.
-pub struct Checker {
-    pub git: Box<dyn GitLister>,
-    pub fs: Box<dyn Fs>,
+pub struct Checker<'a> {
+    pub git: &'a dyn GitLister,
+    pub fs: &'a dyn Fs,
 }
 
-impl Checker {
-    pub fn new(git: Box<dyn GitLister>, fs: Box<dyn Fs>) -> Self {
+impl<'a> Checker<'a> {
+    pub fn new(git: &'a dyn GitLister, fs: &'a dyn Fs) -> Self {
         Self { git, fs }
     }
 
@@ -279,12 +279,8 @@ impl Checker {
         }
 
         // Unregistered
-        let disk_entries = scan::discover_disk_worktrees(
-            self.fs.as_ref(),
-            &cfg.meta_root,
-            &cfg.worktree_path,
-            repo,
-        )?;
+        let disk_entries =
+            scan::discover_disk_worktrees(self.fs, &cfg.meta_root, &cfg.worktree_path, repo)?;
         for d in disk_entries {
             if reg_by_path.contains_key(&PathBuf::from(clean_str(&d.path))) {
                 continue;
