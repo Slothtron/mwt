@@ -8,7 +8,7 @@
 //! - [`doctor`] — §5.3 inspector
 //! - [`initscan`] — 递归发现 `.git` 目录
 //! - [`version`] — build metadata
-//! - [`cli`] — clap 派生根 + 8 个子命令调度
+//! - [`cli`] — clap 派生根 + 9 个子命令调度
 //!
 //! 公开入口 [`run`] 是 CLI 调度入口(供 `main.rs` 与集成测试共用)。
 
@@ -26,7 +26,7 @@ pub mod pathresolve;
 pub mod setup;
 pub mod version;
 
-/// Build metadata, mirror of `mwt-legacy/internal/version`.
+/// Build metadata (version / commit / build date).
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }

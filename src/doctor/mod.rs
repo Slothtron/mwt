@@ -1,6 +1,5 @@
 //! Compare disk state with git worktree registrations (§5.3).
 //!
-//! 与 Go 版 `mwt-legacy/internal/doctor/` 行为一致。
 //! 只报告 findings + 修复建议,**不**删除任何路径。
 
 use std::collections::{HashMap, HashSet};

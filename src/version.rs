@@ -1,6 +1,5 @@
 //! Binary version metadata.
 //!
-//! 与 Go 版 `mwt-legacy/internal/version/version.go` 行为一致。
 //! 1. `CARGO_PKG_VERSION` 是 version 来源。
 //! 2. Commit / build date 由 build script 注入;无 build script 时回退到
 //!    编译期常量,运行时无法 fallback(Go 用 `debug.ReadBuildInfo`;Rust

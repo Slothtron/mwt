@@ -1,6 +1,4 @@
 //! 复制 / 运行 setup 步骤,作用于单个 worktree 的 [`pathresolve::Context`]。
-//!
-//! 与 Go 版 `mwt-legacy/internal/setup/runner.go` 行为一致。
 
 use std::fs;
 use std::io::Write;

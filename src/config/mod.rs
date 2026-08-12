@@ -1,7 +1,6 @@
 //! `.mwt.yaml` 配置模型 + 加载/查找。
 //!
-//! 与 Go 版 `mwt-legacy/internal/config/` 行为完全一致(§5.1 双默认规则、
-//! §5.2 `SetupStep` 单键契约)。
+//! 行为契约:§5.1 双默认规则、§5.2 `SetupStep` 单键契约。
 
 use std::path::PathBuf;
 

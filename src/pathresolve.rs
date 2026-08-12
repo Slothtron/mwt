@@ -1,6 +1,4 @@
 //! 渲染 `{{NAME}}` 路径占位符(§6.1)。
-//!
-//! 与 Go 版 `mwt-legacy/internal/pathresolve/` 行为一致。
 
 use std::path::{Path, PathBuf};
 

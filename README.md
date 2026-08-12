@@ -21,22 +21,25 @@ cargo build --release
 
 二进制在 `./target/{debug,release}/mwt`，把它加到 `PATH` 或拷到 `~/.local/bin/`。
 
-> **BREAKING（相对 v0.x Go 版）**：`mwt skill` 与 `mwt skill sync` 子命令已删除。Agent 技能不再嵌入二进制，改用仓库内的 `scripts/install-skill.sh`：
+> **BREAKING（相对 v0.x Go 版）**：`mwt skill sync` 子命令已删除，改为 `mwt skill install`（纯 Rust，不嵌入二进制）或仓库脚本 `scripts/install-skill.sh`，二者行为一致：
 
 ```bash
-# 默认装到 ~/.agents/skills/mwt
-./scripts/install-skill.sh
+# 默认装到 ~/.agents/skills/mwt（二进制子命令）
+mwt skill install
 
 # 覆盖已存在的目录
+mwt skill install --force
+
+# 装到自定义父目录 / 只打印计划 / JSON 输出
+mwt skill install --dir /path/to/skills
+mwt skill install --dry-run
+mwt skill install --format json
+
+# 或使用仓库脚本（等价）
+./scripts/install-skill.sh
 ./scripts/install-skill.sh --force
-
-# 装到自定义父目录
 ./scripts/install-skill.sh --dir /path/to/skills
-
-# 只打印计划不实际写入
 ./scripts/install-skill.sh --dry-run
-
-# 也可走环境变量
 MWT_SKILL_DIR=/path/to/skills ./scripts/install-skill.sh
 ```
 
@@ -68,7 +71,8 @@ mwt rm my-feature
 | `mwt list` | 聚合各仓 worktree；可按 `--branch` 过滤；`--format <table\|json>` |
 | `mwt path <branch> <repo>` | 打印绝对路径（模板渲染，不要求目录已存在）；`--format <table\|json>` |
 | `mwt setup <branch>` | 对已有 worktree 补跑 setup |
-| `mwt doctor` | 巡检 prunable / 未注册目录 / 主检出缺失 / setup 缺失等；`--fix` 仅自动补跑 `setup_missing`（不 prune、不删目录）；`--format <table\|json>` |
+| `mwt doctor` | 巡检 prunable / 未注册目录 / 主检出缺失 / setup 缺失等；`--fix` 仅自动补跑 `setup_missing`（不 prune、不删目录）；`--format <table\|json>`；未装 skill 或版本不符时 stderr 打印 `hint:` |
+| `mwt skill install` | 安装 mwt Agent skill 到 `~/.agents/skills/mwt`（`--dir`、`--source`、`--force`、`--dry-run`、`--format <table\|json>`）；源取 `--source` > `MWT_SKILL_SOURCE` > `./skills/mwt` |
 
 常用 flags：`--repos`（子集）、`--continue`（某仓失败后继续，仍非 0 退出；`doctor --fix` 亦支持）。
 

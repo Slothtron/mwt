@@ -1,5 +1,6 @@
 ---
 name: mwt
+version: "0.3.0"
 description: >-
   Manage polyrepo Git worktrees with the mwt CLI (.mwt.yaml, add/rm/list/path/setup/doctor/init).
   Use when the user mentions mwt, .mwt.yaml, multi-repo worktrees, or polyrepo branch checkout paths.

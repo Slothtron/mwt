@@ -1,8 +1,7 @@
 //! Injectable collaborators for CLI subcommands.
 //!
-//! 与 Go 版 `mwt-legacy/internal/cli/deps.go` 行为一致——但具体类型从
-//! 强耦合的 `git.New()` / `setup.New()` 改为 trait 注入,方便测试与
-//! 未来替换(例如 mock 一个不真的调 git 的 `GitClient`)。
+//! 具体类型从强耦合的 `git.New()` / `setup.New()` 改为 trait 注入,
+//! 方便测试与未来替换(例如 mock 一个不真的调 git 的 `GitClient`)。
 //!
 //! Rust borrow-checker 不允许 `&mut Box<dyn Write>` 与同一 struct 上
 //! 的 `&Box<dyn GitClient>` 字段同时存在(`Box` 内部 trait object

@@ -1,6 +1,4 @@
 //! Cross-command helpers shared by the CLI subcommand implementations.
-//!
-//! 与 Go 版 `mwt-legacy/internal/cli/shared.go` 行为一致。
 
 use std::path::{Path, PathBuf};
 

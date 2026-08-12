@@ -1,6 +1,4 @@
 //! Walk `cfg.WorktreePath` with `{{BRANCH}}` as a wildcard for one repo.
-//!
-//! 与 Go 版 `mwt-legacy/internal/doctor/scan.go` 行为一致。
 
 use std::collections::HashMap;
 use std::io;

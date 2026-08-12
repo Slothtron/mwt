@@ -3,9 +3,6 @@
 //! 公开入口 [`run`]:接收 `Cli` 与 `Deps`,返回 `ExitCode`。
 //! `Deps` 持有所有可注入的协作者,`Cli` 由 clap 派生,所有子命令各自
 //! 维护自己的 `Args` 结构体。
-//!
-//! 与 Go 版 `mwt-legacy/internal/cli/root.go` 等价,只是删除了
-//! `mwt skill` / `mwt skill sync` 子命令(plan v3 skill 拆分)。
 
 use std::io;
 use std::process::ExitCode;
@@ -23,6 +20,7 @@ pub mod path;
 pub mod rm;
 pub mod setup;
 pub mod shared;
+pub mod skill;
 pub mod version;
 
 use deps::{Deps, SetupRunner};
@@ -79,6 +77,9 @@ pub enum Command {
     },
     /// Inspect worktree registrations vs disk and suggest fixes.
     Doctor(doctor::DoctorOptions),
+    /// Install the mwt Agent skill to a user skills directory.
+    #[command(subcommand)]
+    Skill(skill::SkillCommand),
     /// Hidden helper: print the meta-root located by walking up for `.mwt.yaml`.
     #[command(name = "meta-root", hide = true)]
     MetaRoot,
@@ -97,7 +98,7 @@ pub fn run(
     setup: &mut dyn SetupRunner,
     mut deps: Deps,
 ) -> ExitCode {
-    match dispatch(&cli, stdout, setup, &mut deps) {
+    match dispatch(&cli, stdout, stderr, setup, &mut deps) {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             let _ = writeln!(stderr, "error: {e}");
@@ -109,6 +110,7 @@ pub fn run(
 fn dispatch(
     cli: &Cli,
     stdout: &mut dyn io::Write,
+    stderr: &mut dyn io::Write,
     setup: &mut dyn SetupRunner,
     deps: &mut Deps,
 ) -> Result<(), String> {
@@ -124,7 +126,10 @@ fn dispatch(
             options,
         } => path::run(deps, branch, repo, options, stdout),
         Command::Setup { branch, options } => setup_cmd::run(deps, branch, options, setup, stdout),
-        Command::Doctor(opts) => doctor::run(deps, opts, setup, stdout),
+        Command::Doctor(opts) => doctor::run(deps, opts, setup, stdout, stderr),
+        Command::Skill(cmd) => match cmd {
+            skill::SkillCommand::Install(opts) => skill::run(opts, stdout),
+        },
         Command::MetaRoot => meta_root::run(deps, stdout),
     }
 }
@@ -181,9 +186,12 @@ mod tests {
     }
 
     #[test]
-    fn skill_subcommand_is_gone() {
-        // Plan v3: `mwt skill` and `mwt skill sync` are removed entirely.
+    fn skill_subcommand_parses_install() {
+        // Stage H: `mwt skill install` is the in-binary install path;
+        // bare `mwt skill` still fails (requires a subcommand).
+        let cli = Cli::try_parse_from(["mwt", "skill", "install"]);
+        assert!(cli.is_ok(), "skill install should parse: {cli:?}");
         let cli = Cli::try_parse_from(["mwt", "skill"]);
-        assert!(cli.is_err(), "skill should not parse");
+        assert!(cli.is_err(), "bare skill should not parse");
     }
 }

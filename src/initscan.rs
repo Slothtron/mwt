@@ -1,6 +1,4 @@
 //! 递归发现 `.git` 目录(用于 `mwt init`)。
-//!
-//! 与 Go 版 `mwt-legacy/internal/initscan/discover.go` 行为一致。
 
 use std::collections::HashSet;
 use std::fs;

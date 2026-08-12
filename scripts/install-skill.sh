@@ -11,7 +11,7 @@
 #   scripts/install-skill.sh --dry-run      # print the plan only
 #   MWT_SKILL_DIR=PATH scripts/install-skill.sh
 #
-# 行为对齐 Go 版 `mwt-legacy/internal/skilldata/sync.go` (1:1 复刻)。
+# 行为与 `mwt skill install` 子命令(Rust 版)一致,二者可互换。
 
 set -eu
 

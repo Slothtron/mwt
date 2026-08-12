@@ -31,6 +31,7 @@ pub fn run(
     opts: &DoctorOptions,
     setup_runner: &mut dyn SetupRunner,
     out: &mut dyn Write,
+    err: &mut dyn Write,
 ) -> Result<(), String> {
     let cfg = (deps.load_config)().map_err(|e| format!("load config: {e}"))?;
 
@@ -38,6 +39,8 @@ pub fn run(
     let osfs = OsFs;
     let checker = Checker::new(&git, &osfs);
     let findings = checker.check(&cfg).map_err(|e| format!("doctor: {e}"))?;
+
+    hint_skill(err);
 
     write_doctor(out, opts.format, &findings).map_err(|e| e.to_string())?;
 
@@ -82,6 +85,68 @@ pub fn run(
 
 fn has_setup_missing(findings: &[Finding]) -> bool {
     findings.iter().any(|f| f.kind == Kind::SetupMissing)
+}
+
+/// Emit `hint:` lines to stderr about the mwt Agent skill.
+///
+/// Diagnostics only: never fails, never affects the findings or exit code.
+/// Checks (1) whether `~/.agents/skills/mwt/SKILL.md` exists and
+/// (2) whether its frontmatter `version` matches the binary version.
+fn hint_skill(err: &mut dyn Write) {
+    // The skill install location is independent of the worktree meta-root,
+    // so locate it under the user's home directory.
+    let home = match std::env::var("HOME") {
+        Ok(h) if !h.is_empty() => h,
+        _ => return,
+    };
+    let skill_file = std::path::Path::new(&home).join(".agents/skills/mwt/SKILL.md");
+    if !skill_file.is_file() {
+        let _ = writeln!(
+            err,
+            "hint: mwt Agent skill not installed; run 'mwt skill install' or './scripts/install-skill.sh'"
+        );
+        return;
+    }
+    match read_skill_version(&skill_file) {
+        Some(v) if v == crate::version::VERSION => {}
+        Some(v) => {
+            let _ = writeln!(
+                err,
+                "hint: skill version {v} differs from binary version {}; re-run 'mwt skill install' to update",
+                crate::version::VERSION
+            );
+        }
+        None => {}
+    }
+}
+
+/// Parse the `version:` field out of a SKILL.md frontmatter block
+/// (between the leading `---` and trailing `---`).
+fn read_skill_version(path: &std::path::Path) -> Option<String> {
+    let content = std::fs::read_to_string(path).ok()?;
+    let mut in_frontmatter = false;
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed == "---" {
+            if in_frontmatter {
+                break;
+            }
+            in_frontmatter = true;
+            continue;
+        }
+        if !in_frontmatter {
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("version:") {
+            let v = rest.trim();
+            // Allow both quoted and unquoted values.
+            let v = v.trim_matches('"').trim_matches('\'');
+            if !v.is_empty() {
+                return Some(v.to_string());
+            }
+        }
+    }
+    None
 }
 
 /// `GitLister` adapter over `Deps::git`. Stores a `&dyn GitClient`

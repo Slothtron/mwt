@@ -1,6 +1,4 @@
 //! git worktree operations — shells out to system `git` via `std::process::Command`.
-//!
-//! 与 Go 版 `mwt-legacy/internal/git/` 行为一致。
 
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
